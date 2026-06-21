@@ -1,17 +1,33 @@
-import OpenAI from "openai";
 import { NextResponse } from "next/server";
-console.log("SERVER ENV:", process.env.OPENAI_API_KEY);
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 export async function POST(req: Request) {
-  return NextResponse.json({
-    summary:
-      "Client wants an AI meeting assistant that automatically generates meeting summaries.",
-  
-    actionItems:
-      "Build dashboard, Setup n8n workflow, Connect AI summarization, Test meeting automation",
-  });
+  try {
+    const body = await req.json();
+
+    const response = await fetch(
+      "http://localhost:5678/webhook/meeting-summary",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }
+    );
+
+    const data = await response.json();
+
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error(error);
+
+    return NextResponse.json(
+      {
+        error: "Failed to call n8n workflow",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 }

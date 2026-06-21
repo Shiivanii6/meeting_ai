@@ -16,7 +16,9 @@ export default function GenerateSummaryButton({
   async function generateSummary() {
     try {
       setLoading(true);
-
+  
+      console.log("Generate button clicked");
+  
       const response = await fetch("/api/summarize", {
         method: "POST",
         headers: {
@@ -27,21 +29,27 @@ export default function GenerateSummaryButton({
           transcript,
         }),
       });
-
+  
       const data = await response.json();
-
-      await fetch("/api/save-summary", {
+  
+      console.log("N8N RESPONSE:", data);
+      console.log("Action Items:", data.actionItems);
+      const saveResponse = await fetch("/api/save-summary", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           meetingId,
-          summary: data.summary,
-          action_items: data.actionItems,
+          summary: data.summary || "",
+          action_items: data.actionItems || "",
         }),
       });
-
+  
+      const saveData = await saveResponse.json();
+  
+      console.log("SAVE RESPONSE:", saveData);
+  
       router.refresh();
     } catch (error) {
       console.error(error);
