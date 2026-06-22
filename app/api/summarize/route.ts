@@ -2,28 +2,34 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const { transcript } = await req.json();
 
-    const response = await fetch(
-      "http://localhost:5678/webhook/meeting-summary",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      }
-    );
+    const sentences = transcript
+      .split(".")
+      .filter((s) => s.trim().length > 0);
 
-    const data = await response.json();
+    const summary = sentences
+      .slice(0, 2)
+      .join(". ")
+      .trim() + ".";
 
-    return NextResponse.json(data);
+    const actionItems = sentences
+      .slice(2)
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .join(", ");
+
+    return NextResponse.json({
+      summary,
+      actionItems:
+        actionItems || "Review meeting notes and follow up.",
+    });
   } catch (error) {
     console.error(error);
 
     return NextResponse.json(
       {
-        error: "Failed to call n8n workflow",
+        error: "Failed to generate summary",
       },
       {
         status: 500,
